@@ -1,0 +1,57 @@
+# Build directory
+build/
+.vs/
+out/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+!CMakeLists.txt
+
+# Visual Studio files
+*.user
+*.filters
+*.vcxproj
+*.sln
+
+# Model and image files (optional, comment these out if you want to include them)
+# *.onnx
+# *.jpg
+# *.png
+
+# Debug symbols
+*.pdb
