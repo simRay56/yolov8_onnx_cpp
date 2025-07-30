@@ -1,6 +1,13 @@
 # YOLOv8 ONNXRuntime C++ Demo
 
-本项目演示如何在 C++ 中使用 ONNXRuntime 对 YOLOv8 模型进行推理。项目实现了完整的目标检测流程，包括图像预处理、模型推理和后处理可视化。
+## 项目简介
+这是一个使用ONNXRuntime在C++中运行YOLOv8模型的演示项目，支持检测(detect)、分割(segment)和姿态估计(pose)三种任务类型。
+
+## 系统要求
+- Windows/Linux
+- CMake 3.10+
+- OpenCV 4.5+
+- ONNXRuntime 1.8+
 
 ## 功能特点
 - 支持 YOLOv8 ONNX 格式模型推理
@@ -19,18 +26,29 @@
 ## 目录结构
 ```
 onnx_yolo_c++/
+├── .git/                # Git版本控制目录
+├── .vscode/             # VSCode配置目录
+│   └── settings.json    # 编辑器配置
 ├── src/                 # 源代码目录
 │   ├── main.cpp         # 主程序入口
 │   └── yolo_utils.cpp   # 工具函数实现
 ├── inc/                 # 头文件目录
 │   └── yolo_utils.h     # 工具函数声明
 ├── modules/             # 模型文件目录
-│   └── yolov8n.onnx    # YOLOv8 ONNX 模型
-├── data/               # 测试数据目录
-│   └── bus.jpg         # 测试图片
-├── build/              # 构建输出目录
-│   └── bin/           # 可执行文件目录
-└── CMakeLists.txt      # CMake 构建配置
+│   ├── yolov8n.onnx     # YOLOv8n检测模型
+│   ├── yolov8m-seg.onnx # YOLOv8m分割模型
+│   └── yolov8n-pose.onnx # YOLOv8n姿态估计模型
+├── data/                # 测试数据目录
+│   └── bus.jpg          # 测试图片
+├── build/               # 构建输出目录
+│   ├── bin/             # 可执行文件目录
+│   │   └── Release/     # Release版本输出
+│   │       ├── data/    # 运行时数据目录
+│   │       ├── modules/ # 运行时模型目录
+│   │       ├── onnxruntime.dll # ONNX运行时库
+│   │       └── yolo_inference.exe # 主程序
+│   └── CMake缓存和生成文件
+└── CMakeLists.txt       # CMake 构建配置
 ```
 
 ## 安装步骤
@@ -73,27 +91,53 @@ onnx_yolo_c++/
 
 ## 使用说明
 
+支持以下任务类型参数：
+- `detect`: 目标检测（默认）
+- `segment`: 实例分割
+- `pose`: 关键点检测
+
+### 示例命令
+```bash
+# 默认检测任务
+./yolo_inference
+
+# 指定分割任务
+./yolo_inference segment
+
+# 使用姿态估计
+./yolo_inference pose
+```
+
+支持以下可选参数：
+- `--model`: 指定ONNX模型文件名（默认：yolov8n.onnx）
+- `--image`: 指定输入图片文件名（默认：bus.jpg）
+- `--conf`: 设置置信度阈值（默认：0.25）
+- `--iou`: 设置IOU阈值（默认：0.45）
+
 1. **准备运行环境**
    - 确保所有依赖库的 DLL 在系统 PATH 中
-   - 检查 `build/bin/Release` 目录下是否有以下文件和目录：
+   - 检查 `build/bin/Release` 目录结构完整：
      ```
      bin/Release/
      ├── yolo_inference.exe    # 主程序
      ├── onnxruntime.dll      # ONNXRuntime 运行时
      ├── modules/             # 模型目录
-     │   └── yolov8n.onnx    # YOLO模型
-     └── data/               # 数据目录
-         └── bus.jpg         # 测试图片
+     │   ├── yolov8n.onnx     # 目标检测模型
+     │   ├── yolov8m-seg.onnx # 实例分割模型
+     │   └── yolov8n-pose.onnx # 姿态估计模型
+     └── data/                # 数据目录
+         └── bus.jpg          # 测试图片
      ```
 
-2. **运行程序**
+2. **修改源码并运行程序**
+   - 打开 `src/main.cpp` 文件
+   - 修改以下硬编码路径变量：
+     * 模型路径：`std::string model_path = "modules/yolov8n.onnx"`
+     * 图片路径：`std::string image_path = "data/bus.jpg"`
+   - 保存文件后重新编译项目：
    ```bash
-   # 方式1：直接在 bin/Release 目录下运行
-   cd build/bin/Release
-   yolo_inference.exe
-
-   # 方式2：从任意位置运行（使用完整路径）
-   ./build/bin/Release/yolo_inference.exe
+   cd build
+   cmake --build . --config Release
    ```
 
 3. **查看结果**
