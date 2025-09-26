@@ -230,11 +230,20 @@ std::vector<Detection> YOLOv8::postprocessSegment(const float* output_data, cons
 
             cv::Mat mask_flat;
             cv::gemm(coeff_mat, mat_proto, 1.0, cv::Mat(), 0.0, mask_flat);
-            cv::Mat mask = mask_flat.reshape(1, proto_h);
+
+            cv::Mat mask_sigmoid;
+            cv::exp(-mask_flat, mask_sigmoid);
+            mask_sigmoid = 1.0 / (1.0 + mask_sigmoid);
+
+            cv::Mat mask = mask_sigmoid.reshape(1, proto_h);
             cv::resize(mask, mask, image.size(), 0, 0, cv::INTER_LINEAR);
-            cv::threshold(mask, mask, 0.5, 1.0, cv::THRESH_BINARY); 
 
             det.mask = mask.clone();
+
+            double  min_val, max_val;
+            cv::minMaxLoc(mask_sigmoid, &min_val, &max_val);
+            std::cout << "Mask min: " << min_val << ", max: " << max_val << std::endl;
+
             detections.push_back(det);
         }
     
@@ -338,10 +347,16 @@ void YOLOv8::visualize(cv::Mat& image, const std::vector<Detection>& detections,
             case YoloModelType::SEGMENT:
                 if (!det.mask.empty()) {
                     cv::Mat mask_u8;
-                    det.mask.convertTo(mask_u8, CV_8U, 255);
-                    cv::Mat color_mask = cv::Mat::zeros(image.size(), image.type());
-                    color_mask.setTo(cv::Scalar(0, 128, 0), mask_u8);
-                    cv::addWeighted(image, 0.9, color_mask, 0.2, 0, image);
+                    det.mask.convertTo(mask_u8, CV_8U, 255); // Convert to uint8
+
+                    cv::threshold(mask_u8, mask_u8, 128, 255, cv::THRESH_BINARY);
+
+                    cv::Mat highlightedImg = image.clone();
+                    cv::Mat colorMask(image.size(), CV_8UC3, cv::Scalar(0, 255, 0)); // Green mask
+
+                    colorMask.copyTo(highlightedImg, mask_u8);
+
+                    cv::addWeighted(highlightedImg, 0.3, image, 0.7, 0, image);
                 }
                 break;
             case YoloModelType::POSE:
